@@ -1,0 +1,18 @@
+.root {
+    -fx-font-family: "SF Pro Text", "Helvetica Neue", sans-serif;
+    -fx-background-color: #f7f8fa;
+}
+
+.text-area {
+    -fx-control-inner-background: white;
+    -fx-border-color: #dcdcdc;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.button {
+    -fx-background-color: #007aff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+}
