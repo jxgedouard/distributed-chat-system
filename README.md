@@ -34,10 +34,15 @@
 
 ## 🚧 FONCTIONNALITÉS EN COURS
 
-- 🔧 **Intégration de l'architecture Message dans Server.java**
-  - Adapter le serveur pour utiliser les nouvelles classes
-  - Implémenter la détection des messages privés (@username)
-  - Remplacer les String par des objets Message
+- 🔧 **Intégration de l'architecture Message dans Server.java** (70% terminé)
+  - ✅ Imports des classes Message ajoutés
+  - ✅ Détection des messages privés (@username) vs publics
+  - ✅ Création des objets Message appropriés (BroadcastMessage/PrivateMessage)
+  - ✅ Utilisation de format() pour l'affichage
+  - ⏳ TODO: Méthode findClientByUsername() pour chercher un client
+  - ⏳ TODO: Envoi sélectif des messages privés (seulement expéditeur + destinataire)
+  - ⏳ TODO: Remplacer notifications connexion/déconnexion par SystemMessage
+  - ⏳ TODO: Tests complets serveur + clients
 
 ---
 
@@ -148,12 +153,48 @@
 
 ## 🔄 PROCHAINE SESSION
 
+**Session du 2025-11-21 - Statut : En pause sur intégration Message**
+
+**Contexte** :
+- Branche actuelle : `feature/message-hierarchy`
+- Fichiers modifiés : `src/server/Server.java`
+- Documentation créée : `documentation/Server_Explications.md`
+- Dernier commit : "feat(wip): integrate Message architecture in Server (partial)"
+
+**Ce qui reste à faire (30-40 min estimé)** :
+
+1. **Ajouter méthode `findClientByUsername(String username)` dans Server.java** (~5 min)
+   - Parcourt la liste `clients`
+   - Retourne le ClientHandler correspondant ou null
+
+2. **Implémenter l'envoi sélectif pour messages privés** (~10 min)
+   - Ligne 144 de Server.java : remplacer le TODO
+   - Utiliser findClientByUsername() pour trouver le destinataire
+   - Envoyer à l'expéditeur ET au destinataire seulement
+   - Gérer le cas "utilisateur introuvable"
+
+3. **Remplacer notifications par SystemMessage** (~5 min)
+   - Lignes 120, 131 : connexion/déconnexion
+   - Utiliser `new SystemMessage(...)` au lieu de String brute
+
+4. **Tester** (~15 min)
+   - Compiler : `javac src/server/Server.java src/messages/*.java`
+   - Lancer serveur + plusieurs clients
+   - Tester messages publics, privés, connexions
+
+5. **Mettre à jour documentation** (~10 min)
+   - Ajouter section sur intégration Message dans Server_Explications.md
+   - Expliquer findClientByUsername(), parsing messages privés
+
+6. **Commit final** (~5 min)
+   - `git add .`
+   - `git commit -m "feat: complete Message architecture integration"`
+
 **Au démarrage de la prochaine session:**
-1. Lire ce fichier PROJECT_STATUS.md
-2. Résumer ce qui a été fait
-3. Proposer la prochaine feature à implémenter
-4. Guider avec des questions (pas de solutions directes)
-5. Enseigner Git au fur et à mesure
+1. Lire ce fichier README.md (section "PROCHAINE SESSION")
+2. Reprendre là où on s'est arrêté (Server.java ligne 144)
+3. Suivre le plan ci-dessus étape par étape
+4. Mode pédagogique : guider avec questions, pas de solutions directes
 
 **Méthodologie d'apprentissage:**
 - ❌ Ne PAS donner la solution complète
