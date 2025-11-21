@@ -5,6 +5,11 @@ import java.net.*;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import messages.Message;
+import messages.BroadcastMessage;
+import messages.PrivateMessage;
+import messages.SystemMessage;
+
 public class Server {
     private static final CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
     private static volatile boolean running = true; 
@@ -111,10 +116,37 @@ public class Server {
                 broadcast("✅ " + username + " a rejoint le chat.");
 
                 // Boucle de messages
-                String message;
-                while ((message = input.readLine()) != null) {
-                    System.out.println(username + " => " + message);
-                    broadcast(username + " => " + message);
+                String messageText;
+                while ((messageText = input.readLine()) != null) {
+
+                    Message msg;
+
+                    if (messageText.startsWith("@")) {
+                        // Message privé
+                        String[] parts = messageText.split(" ", 2);
+
+                        // Vérifier qu'il y a bien un destinataire ET un message
+                        if (parts.length < 2) {
+                            output.println("[ERREUR] Format : @username message");
+                            continue;
+                        }
+
+                        String recipient = parts[0].substring(1);  // Enlève le @
+                        String content = parts[1];
+
+                        msg = new PrivateMessage(username, recipient, content);
+                        System.out.println(msg.format());
+
+                        // TODO: Implémenter l'envoi aux destinataires spécifiques
+                        // Pour l'instant, on broadcast (temporaire)
+                        broadcast(msg.format());
+
+                    } else {
+                        // Message public
+                        msg = new BroadcastMessage(username, messageText);
+                        System.out.println(msg.format());
+                        broadcast(msg.format());
+                    }
                 }
 
             } catch (IOException e) {
