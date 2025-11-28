@@ -90,6 +90,15 @@ public class Server {
         }).start();
     }
 
+    private static ClientHandler findClientByUsername(String username) {
+        for (ClientHandler client : clients) {
+            if (client.username.equals(username)) {
+                return client;
+            }
+        }
+        return null;
+    }
+
     // Classe interne pour gérer chaque client
     static class ClientHandler implements Runnable {
         private final Socket socket;
@@ -112,8 +121,9 @@ public class Server {
             try {
                 // Réception du pseudo
                 this.username = input.readLine();
-                System.out.println("Utilisateur connecté : " + username);
-                broadcast("✅ " + username + " a rejoint le chat.");
+                SystemMessage connectionMsg = new SystemMessage("✅ " + username + " a rejoint le chat.");
+                System.out.println(connectionMsg.format());
+                broadcast(connectionMsg.format());
 
                 // Boucle de messages
                 String messageText;
@@ -134,12 +144,16 @@ public class Server {
                         String recipient = parts[0].substring(1);  // Enlève le @
                         String content = parts[1];
 
-                        msg = new PrivateMessage(username, recipient, content);
-                        System.out.println(msg.format());
+                        ClientHandler recipientClient = findClientByUsername(recipient);
 
-                        // TODO: Implémenter l'envoi aux destinataires spécifiques
-                        // Pour l'instant, on broadcast (temporaire)
-                        broadcast(msg.format());
+                        if (recipientClient == null) {
+                            output.println("[ERREUR] Utilisateur '" + recipient + "' introuvable.");
+                        } else {
+                            msg = new PrivateMessage(username, recipient, content);
+                            System.out.println(msg.format());
+                            this.output.println(msg.format());
+                            recipientClient.output.println(msg.format());
+                        }
 
                     } else {
                         // Message public
@@ -155,8 +169,10 @@ public class Server {
                 try {
                     clients.remove(this);
                     socket.close();
-                    System.out.println("❌ " + username + " s'est déconnecté.");
-                    broadcast("❌ " + username + " s'est déconnecté.");
+
+                    SystemMessage disconnectionMsg = new SystemMessage("❌ " + username + " s'est déconnecté.");
+                    System.out.println(disconnectionMsg.format());
+                    broadcast(disconnectionMsg.format());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

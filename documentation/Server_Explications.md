@@ -710,5 +710,215 @@ finally {
 
 ---
 
-**FIN DE LA DOCUMENTATION (PARTIE 1)**
-**Suite après exploration des autres parties du code**
+---
+
+## 🏗️ INTÉGRATION DE L'ARCHITECTURE MESSAGE (V3.0)
+
+**Date d'implémentation** : 2025-11-28
+
+### 📌 Vue d'ensemble
+
+L'architecture Message introduit une hiérarchie de classes pour remplacer les `String` brutes par des objets typés :
+
+```
+        Message (abstract)
+            │
+    ┌───────┼────────┐
+    │       │        │
+Broadcast Private System
+Message   Message  Message
+```
+
+### 🔧 Nouvelle méthode : findClientByUsername()
+
+```java
+private static ClientHandler findClientByUsername(String username) {
+    for (ClientHandler client : clients) {
+        if (client.username.equals(username)) {
+            return client;
+        }
+    }
+    return null;
+}
+```
+
+**Rôle** :
+- Cherche un `ClientHandler` par son pseudo
+- Retourne le `ClientHandler` si trouvé, sinon `null`
+- Utilisée pour l'envoi sélectif des messages privés
+
+**Pourquoi `static` ?**
+- Appelée depuis `ClientHandler` (qui est `static class`)
+- Accède à la liste `clients` (qui est `static`)
+
+---
+
+### 📨 Gestion des messages privés (ligne 133-157)
+
+**Ancien code** (brut) :
+```java
+if (messageText.startsWith("@")) {
+    // Parse et broadcast à tout le monde ❌
+    broadcast("[@" + username + " -> " + recipient + "] " + content);
+}
+```
+
+**Nouveau code** (architecture Message) :
+```java
+if (messageText.startsWith("@")) {
+    // 1. Parser le message
+    String[] parts = messageText.split(" ", 2);
+
+    if (parts.length < 2) {
+        output.println("[ERREUR] Format : @username message");
+        continue;
+    }
+
+    String recipient = parts[0].substring(1);  // Enlève le @
+    String content = parts[1];
+
+    // 2. Chercher le destinataire
+    ClientHandler recipientClient = findClientByUsername(recipient);
+
+    if (recipientClient == null) {
+        // Destinataire introuvable
+        output.println("[ERREUR] Utilisateur '" + recipient + "' introuvable.");
+    } else {
+        // 3. Créer le message typé
+        msg = new PrivateMessage(username, recipient, content);
+        System.out.println(msg.format());
+
+        // 4. Envoi sélectif (SEULEMENT expéditeur + destinataire)
+        this.output.println(msg.format());      // Expéditeur
+        recipientClient.output.println(msg.format());  // Destinataire
+    }
+}
+```
+
+**Améliorations** :
+- ✅ **Validation** : Vérifie que le destinataire existe
+- ✅ **Envoi sélectif** : Seuls l'expéditeur et le destinataire reçoivent le message
+- ✅ **Type-safety** : Utilise `PrivateMessage` au lieu de String
+- ✅ **Formatage uniforme** : `msg.format()` gère l'affichage
+
+---
+
+### 📢 Utilisation de SystemMessage (connexion/déconnexion)
+
+**Connexion d'un utilisateur (ligne 125-127)** :
+
+**Avant** :
+```java
+this.username = input.readLine();
+System.out.println("Utilisateur connecté : " + username);
+broadcast("✅ " + username + " a rejoint le chat.");
+```
+
+**Après** :
+```java
+this.username = input.readLine();
+
+SystemMessage connectionMsg = new SystemMessage("✅ " + username + " a rejoint le chat.");
+System.out.println(connectionMsg.format());
+broadcast(connectionMsg.format());
+```
+
+**Déconnexion d'un utilisateur (ligne 173-175)** :
+
+**Avant** :
+```java
+System.out.println("❌ " + username + " s'est déconnecté.");
+broadcast("❌ " + username + " s'est déconnecté.");
+```
+
+**Après** :
+```java
+SystemMessage disconnectionMsg = new SystemMessage("❌ " + username + " s'est déconnecté.");
+System.out.println(disconnectionMsg.format());
+broadcast(disconnectionMsg.format());
+```
+
+**Avantages** :
+- ✅ **Cohérence** : Toutes les notifications système passent par `SystemMessage`
+- ✅ **Évolutivité** : Facile d'ajouter un timestamp ou un style spécial
+- ✅ **Polymorphisme** : Tout est un `Message` (principe OOP)
+
+---
+
+### 🎯 Flux d'exécution d'un message privé
+
+```
+1. Alice tape : "@Bob salut !"
+         ↓
+2. Thread Alice : readLine() reçoit "@Bob salut !"
+         ↓
+3. Détection : startsWith("@") → Message privé
+         ↓
+4. Parsing : split(" ", 2)
+   → recipient = "Bob"
+   → content = "salut !"
+         ↓
+5. Recherche : findClientByUsername("Bob")
+   → Retourne le ClientHandler de Bob
+         ↓
+6. Création : new PrivateMessage("Alice", "Bob", "salut !")
+         ↓
+7. Envoi sélectif :
+   → Alice reçoit : "[MP à Bob] salut !"
+   → Bob reçoit   : "[MP de Alice] salut !"
+   → Charlie NE reçoit RIEN ✅
+```
+
+---
+
+### 🔍 Différence : broadcast() vs envoi sélectif
+
+**broadcast()** - Messages publics :
+```java
+broadcast(msg.format());
+// → Envoie à TOUS les clients de la liste
+```
+
+**Envoi sélectif** - Messages privés :
+```java
+this.output.println(msg.format());           // Expéditeur
+recipientClient.output.println(msg.format()); // Destinataire
+// → Envoie SEULEMENT à 2 personnes
+```
+
+**Schéma** :
+```
+Clients connectés : Alice, Bob, Charlie
+
+Message public (Alice : "Bonjour à tous")
+→ broadcast() → Alice ✅, Bob ✅, Charlie ✅
+
+Message privé (Alice : "@Bob salut toi")
+→ Envoi sélectif → Alice ✅, Bob ✅, Charlie ❌
+```
+
+---
+
+### 🧪 Tests effectués
+
+✅ **Connexion** : Notifications avec `SystemMessage`
+✅ **Messages publics** : Tous les clients reçoivent
+✅ **Messages privés** : Seuls expéditeur + destinataire reçoivent
+✅ **Utilisateur introuvable** : Message d'erreur affiché
+✅ **Déconnexion** : Notifications avec `SystemMessage`
+
+---
+
+### 📚 Concepts OOP appliqués
+
+| Concept | Où ? | Exemple |
+|---------|------|---------|
+| **Héritage** | Message → BroadcastMessage, PrivateMessage, SystemMessage | `extends Message` |
+| **Polymorphisme** | `msg.format()` | Comportement différent selon le type |
+| **Encapsulation** | Attributs `private`, méthodes `public` | `private String sender` |
+| **Abstraction** | Classe abstraite `Message` | `abstract String format()` |
+
+---
+
+**FIN DE LA DOCUMENTATION (PARTIE 2)**
+**Architecture Message complètement intégrée et testée ✅**

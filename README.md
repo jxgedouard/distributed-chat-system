@@ -1,6 +1,6 @@
 # 📊 STATUT DU PROJET - JavaGroupChat
 
-**Dernière mise à jour :** 2025-11-21
+**Dernière mise à jour :** 2025-11-28
 
 ---
 
@@ -32,17 +32,24 @@
 
 ---
 
+## ✅ FONCTIONNALITÉS TERMINÉES (suite)
+
+### V3.0 - Intégration de l'architecture Message (TERMINÉ ✅)
+- ✅ Imports des classes Message ajoutés
+- ✅ Détection des messages privés (@username) vs publics
+- ✅ Création des objets Message appropriés (BroadcastMessage/PrivateMessage)
+- ✅ Utilisation de format() pour l'affichage
+- ✅ Méthode findClientByUsername() implémentée
+- ✅ Envoi sélectif des messages privés (seulement expéditeur + destinataire)
+- ✅ Notifications connexion/déconnexion avec SystemMessage
+- ✅ Tests complets serveur + clients
+- ✅ Documentation mise à jour (Server_Explications.md)
+
+---
+
 ## 🚧 FONCTIONNALITÉS EN COURS
 
-- 🔧 **Intégration de l'architecture Message dans Server.java** (70% terminé)
-  - ✅ Imports des classes Message ajoutés
-  - ✅ Détection des messages privés (@username) vs publics
-  - ✅ Création des objets Message appropriés (BroadcastMessage/PrivateMessage)
-  - ✅ Utilisation de format() pour l'affichage
-  - ⏳ TODO: Méthode findClientByUsername() pour chercher un client
-  - ⏳ TODO: Envoi sélectif des messages privés (seulement expéditeur + destinataire)
-  - ⏳ TODO: Remplacer notifications connexion/déconnexion par SystemMessage
-  - ⏳ TODO: Tests complets serveur + clients
+Aucune feature en cours actuellement
 
 ---
 
@@ -153,55 +160,28 @@
 
 ## 🔄 PROCHAINE SESSION
 
-**Session du 2025-11-21 - Statut : En pause sur intégration Message**
+**Session du 2025-11-28 - Statut : Architecture Message COMPLÈTE ✅**
 
-**Contexte** :
-- Branche actuelle : `feature/message-hierarchy`
-- Fichiers modifiés : `src/server/Server.java`
-- Documentation créée : `documentation/Server_Explications.md`
-- Dernier commit : "feat(wip): integrate Message architecture in Server (partial)"
+**Ce qui a été fait cette session** :
+1. ✅ Méthode `findClientByUsername()` implémentée
+2. ✅ Envoi sélectif des messages privés (uniquement expéditeur + destinataire)
+3. ✅ Notifications avec `SystemMessage` (connexion/déconnexion)
+4. ✅ Tests complets (connexion, messages publics/privés, déconnexion)
+5. ✅ Documentation mise à jour (Server_Explications.md - Partie 2)
+6. ✅ README actualisé
 
-**Ce qui reste à faire (30-40 min estimé)** :
+**Prochaines features possibles** :
+- [ ] Commande `/help` (afficher toutes les commandes)
+- [ ] Commande `/list` (voir tous les utilisateurs connectés)
+- [ ] Validation des pseudos (unicité, caractères interdits)
+- [ ] Timestamps sur les messages
+- [ ] Système de statuts (en ligne, absent, occupé)
+- [ ] Historique des messages (20 derniers messages)
 
-1. **Ajouter méthode `findClientByUsername(String username)` dans Server.java** (~5 min)
-   - Parcourt la liste `clients`
-   - Retourne le ClientHandler correspondant ou null
-
-2. **Implémenter l'envoi sélectif pour messages privés** (~10 min)
-   - Ligne 144 de Server.java : remplacer le TODO
-   - Utiliser findClientByUsername() pour trouver le destinataire
-   - Envoyer à l'expéditeur ET au destinataire seulement
-   - Gérer le cas "utilisateur introuvable"
-
-3. **Remplacer notifications par SystemMessage** (~5 min)
-   - Lignes 120, 131 : connexion/déconnexion
-   - Utiliser `new SystemMessage(...)` au lieu de String brute
-
-4. **Tester** (~15 min)
-   - Compiler : `javac src/server/Server.java src/messages/*.java`
-   - Lancer serveur + plusieurs clients
-   - Tester messages publics, privés, connexions
-
-5. **Mettre à jour documentation** (~10 min)
-   - Ajouter section sur intégration Message dans Server_Explications.md
-   - Expliquer findClientByUsername(), parsing messages privés
-
-6. **Commit final** (~5 min)
-   - `git add .`
-   - `git commit -m "feat: complete Message architecture integration"`
-
-**Au démarrage de la prochaine session:**
-1. Lire ce fichier README.md (section "PROCHAINE SESSION")
-2. Reprendre là où on s'est arrêté (Server.java ligne 144)
-3. Suivre le plan ci-dessus étape par étape
-4. Mode pédagogique : guider avec questions, pas de solutions directes
-
-**Méthodologie d'apprentissage:**
-- ❌ Ne PAS donner la solution complète
-- ✅ Poser des questions précises pour guider
-- ✅ Expliquer les commandes Git au moment opportun
-- ✅ Faire réfléchir sur l'architecture avant de coder
-- ✅ Encourager à chercher dans la doc Java
+**Rappel méthodologie :**
+- Mode pédagogique : guider avec questions, pas de solutions directes
+- Faire réfléchir avant de coder
+- Documenter au fur et à mesure
 
 ---
 
