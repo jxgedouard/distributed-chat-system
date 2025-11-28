@@ -45,6 +45,14 @@
 - ✅ Tests complets serveur + clients
 - ✅ Documentation mise à jour (Server_Explications.md)
 
+### V4.0 - Timestamps et Historique (TERMINÉ ✅)
+- ✅ Timestamps format [HH:mm:ss] sur tous les messages
+- ✅ DateTimeFormatter dans toutes les classes Message
+- ✅ Historique des 20 derniers messages (LinkedList/Queue)
+- ✅ Méthode addToHistory() avec rotation automatique
+- ✅ Méthode sendHistoryTo() pour nouveaux clients
+- ✅ Sauvegarde de tous types de messages (broadcast, privé, système)
+
 ---
 
 ## 🚧 FONCTIONNALITÉS EN COURS
@@ -55,54 +63,69 @@ Aucune feature en cours actuellement
 
 ## 📋 FONCTIONNALITÉS À FAIRE
 
-### 🟢 NIVEAU SIMPLE
+### ✅ SÉLECTION POUR PRÉSENTATION AMPHI (4 features)
+
 - [x] 📐 **ARCHITECTURE:** Refactoring avec héritage ✅ **TERMINÉ**
   - Classe abstraite `Message`
   - Sous-classes: `BroadcastMessage`, `PrivateMessage`, `SystemMessage`
 
-- [ ] **Commande /help**
+- [x] 🕐 **Timestamps sur messages** ✅ **TERMINÉ**
+  - Format: `[HH:mm:ss]`
+  - DateTimeFormatter implémenté dans toutes les classes Message
+
+- [x] 📜 **Historique des messages** ✅ **TERMINÉ**
+  - Sauvegarde des 20 derniers messages
+  - Envoi automatique aux nouveaux connectés
+  - Structure: LinkedList (Queue)
+  - **Concept:** Queue (objectif pédagogique)
+
+- [ ] 🏠 **Système de channels/salons** ← PROCHAINE ÉTAPE
+  - Channels par défaut: #general, #random, #java
+  - Commandes: `/join #channel`, `/leave`, `/channels`
+  - HashMap pour gérer les channels
+  - Messages visibles uniquement dans le channel actuel
+  - **Concept:** HashMap (objectif pédagogique)
+  - Temps estimé: 1h
+
+- [ ] 📺 **Interface graphique JavaFX** ← DERNIÈRE ÉTAPE
+  - Fenêtre de chat avec zone messages + zone saisie
+  - Connexion avec pseudo
+  - Affichage temps réel des messages
+  - Différenciation visuelle messages publics/privés
+  - Temps estimé: 2-3h (avec aide Gemini)
+
+---
+
+### 🟢 NIVEAU SIMPLE (NON RETENU - disponible pour plus tard)
+
+- [ ] **(NON RETENU) Commande /help**
   - Afficher toutes les commandes disponibles
   - Format clair et lisible
 
-- [ ] **Commande /list**
+- [ ] **(NON RETENU) Commande /list**
   - Afficher tous les utilisateurs connectés
   - Afficher leur statut actuel
 
-- [ ] **Validation des pseudos**
+- [ ] **(NON RETENU) Validation des pseudos**
   - Vérifier unicité du pseudo
   - Interdire: @, #, / et espaces
   - Refuser pseudos vides
 
 ---
 
-### 🟡 NIVEAU INTERMÉDIAIRE
+### 🟡 NIVEAU INTERMÉDIAIRE (NON RETENU - disponible pour plus tard)
 
-- [ ] **Timestamps sur messages**
-  - Format: `[HH:mm:ss]`
-  - Ajout automatique côté serveur
-
-- [ ] **Système de statuts**
+- [ ] **(NON RETENU) Système de statuts**
   - 🟢 En ligne (défaut)
   - 🟠 Absent
   - 🔴 Occupé
   - Commande: `/status [en ligne|absent|occupé]`
 
-- [ ] **Historique des messages**
-  - Sauvegarder les 20 derniers messages
-  - Envoyer l'historique aux nouveaux connectés
-  - Structure de données adaptée (Queue?)
-
 ---
 
-### 🔴 NIVEAU AVANCÉ
+### 🔴 NIVEAU AVANCÉ (NON RETENU - disponible pour plus tard)
 
-- [ ] **Système de channels/salons**
-  - Channels par défaut: #general, #random, #java
-  - Commandes: `/join #channel`, `/leave`, `/channels`
-  - HashMap pour gérer les channels
-  - Messages visibles uniquement dans le channel actuel
-
-- [ ] **Système de rôles et permissions**
+- [ ] **(NON RETENU) Système de rôles et permissions**
   - Interface `Role` avec méthodes abstraites
   - Classes: `Admin`, `Moderator`, `User`
   - Permissions différentes par rôle
@@ -110,32 +133,24 @@ Aucune feature en cours actuellement
 
 ---
 
-### 🌟 FEATURES WOW
+### 🌟 FEATURES WOW (NON RETENU - disponible pour plus tard)
 
-- [ ] **Réactions emoji en temps réel**
+- [ ] **(NON RETENU) Réactions emoji en temps réel**
   - Commande: `+react <messageID> <emoji>`
   - Affichage: `Alice => Salut ! [👍 x3] [❤️ x1]`
   - Stockage des réactions par message
 
 ---
 
-### 🎨 BONUS
+## 🎯 ORDRE D'IMPLÉMENTATION RECOMMANDÉ
 
-- [ ] **Interface graphique**
-  - Intégration branche `feature/interface`
-  - Connexion Client.java avec UI
-  - Affichage temps réel des messages
+1. ✅ **Refactoring architecture** (héritage Message) - TERMINÉ
+2. ✅ **Timestamps** - TERMINÉ
+3. ✅ **Historique messages** - TERMINÉ
+4. ⏳ **Système de channels** (1h) - Feature impressionnante, utilise HashMap
+5. ⏳ **Interface JavaFX** (2-3h) - En dernier pour tester toutes les features visuellement
 
----
-
-## 🎯 PRIORITÉS RECOMMANDÉES
-
-1. **Refactoring architecture** (héritage Message) - Important pour le prof
-2. **/help et /list** - Rapide et utile
-3. **Validation pseudos** - Évite bugs
-4. **Timestamps** - Facile et professionnel
-5. **Système de channels** - Feature impressionnante
-6. **Réactions emoji** - Le "wow effect"
+**Progrès : 3/5 features terminées**
 
 ---
 
@@ -147,8 +162,10 @@ Aucune feature en cours actuellement
 - ✅ Héritage (classe abstraite Message) ← **TERMINÉ !**
 - ✅ Polymorphisme (méthode format() dans Message) ← **TERMINÉ !**
 - ✅ Encapsulation (attributs privés + getters)
-- 🎯 Interface (Role) - À faire
-- 🎯 Collections avancées (HashMap, Queue) - À faire
+- 🎯 Collections avancées - **EN COURS**
+  - ✅ Queue pour l'historique des messages (LinkedList) - TERMINÉ
+  - ⏳ HashMap pour les channels/salons - À FAIRE
+- ❌ Interface (Role) - Non retenu pour la présentation
 
 ### Branches Git:
 - `main` - Branche principale
@@ -160,23 +177,19 @@ Aucune feature en cours actuellement
 
 ## 🔄 PROCHAINE SESSION
 
-**Session du 2025-11-28 - Statut : Architecture Message COMPLÈTE ✅**
+**Session du 2025-11-28 - Statut : Timestamps + Historique TERMINÉS ✅**
 
 **Ce qui a été fait cette session** :
-1. ✅ Méthode `findClientByUsername()` implémentée
-2. ✅ Envoi sélectif des messages privés (uniquement expéditeur + destinataire)
-3. ✅ Notifications avec `SystemMessage` (connexion/déconnexion)
-4. ✅ Tests complets (connexion, messages publics/privés, déconnexion)
-5. ✅ Documentation mise à jour (Server_Explications.md - Partie 2)
-6. ✅ README actualisé
+1. ✅ Timestamps format [HH:mm:ss] sur tous les messages
+2. ✅ Historique des 20 derniers messages (LinkedList/Queue)
+3. ✅ Envoi automatique de l'historique aux nouveaux clients
+4. ✅ README mis à jour
 
-**Prochaines features possibles** :
-- [ ] Commande `/help` (afficher toutes les commandes)
-- [ ] Commande `/list` (voir tous les utilisateurs connectés)
-- [ ] Validation des pseudos (unicité, caractères interdits)
-- [ ] Timestamps sur les messages
-- [ ] Système de statuts (en ligne, absent, occupé)
-- [ ] Historique des messages (20 derniers messages)
+**Features restantes pour la présentation amphi** :
+1. ⏳ 🏠 Système de channels/salons avec HashMap (1h) - **PROCHAINE ÉTAPE**
+2. ⏳ 📺 Interface graphique JavaFX (2-3h avec Gemini) - FINALE
+
+**Progrès total : 3/5 features terminées (60%)**
 
 **Rappel méthodologie :**
 - Mode pédagogique : guider avec questions, pas de solutions directes

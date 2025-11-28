@@ -2,6 +2,7 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -12,7 +13,10 @@ import messages.SystemMessage;
 
 public class Server {
     private static final CopyOnWriteArrayList<ClientHandler> clients = new CopyOnWriteArrayList<>();
-    private static volatile boolean running = true; 
+    private static volatile boolean running = true;
+
+    private static final LinkedList<Message> messageHistory = new LinkedList<>();
+    private static final int MAX_HISTORY_SIZE = 20; 
 
     public static void main(String[] args) {
         int port = 3000;
@@ -99,6 +103,18 @@ public class Server {
         return null;
     }
 
+    private static synchronized void addToHistory(Message message) {
+        messageHistory.add(message); 
+        if (messageHistory.size() > MAX_HISTORY_SIZE) {
+            messageHistory.removeFirst();
+        }
+    }
+    private static void sendHistoryTo(ClientHandler client) {
+        for (Message msg : messageHistory) {
+            client.output.println(msg.format());
+        }
+    }
+
     // Classe interne pour gérer chaque client
     static class ClientHandler implements Runnable {
         private final Socket socket;
@@ -121,9 +137,14 @@ public class Server {
             try {
                 // Réception du pseudo
                 this.username = input.readLine();
+
+                // Envoyer l'historique des 20 derniers messages au nouveau client
+                sendHistoryTo(this);
+
                 SystemMessage connectionMsg = new SystemMessage("✅ " + username + " a rejoint le chat.");
                 System.out.println(connectionMsg.format());
                 broadcast(connectionMsg.format());
+                addToHistory(connectionMsg);  
 
                 // Boucle de messages
                 String messageText;
@@ -153,6 +174,7 @@ public class Server {
                             System.out.println(msg.format());
                             this.output.println(msg.format());
                             recipientClient.output.println(msg.format());
+                            addToHistory(msg);  // Sauvegarder dans l'historique
                         }
 
                     } else {
@@ -160,6 +182,7 @@ public class Server {
                         msg = new BroadcastMessage(username, messageText);
                         System.out.println(msg.format());
                         broadcast(msg.format());
+                        addToHistory(msg);  // Sauvegarder dans l'historique
                     }
                 }
 
@@ -173,6 +196,7 @@ public class Server {
                     SystemMessage disconnectionMsg = new SystemMessage("❌ " + username + " s'est déconnecté.");
                     System.out.println(disconnectionMsg.format());
                     broadcast(disconnectionMsg.format());
+                    addToHistory(disconnectionMsg);  // Sauvegarder dans l'historique
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
