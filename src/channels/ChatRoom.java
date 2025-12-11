@@ -31,4 +31,8 @@ public class ChatRoom {
         return name;
     }
 
+    public CopyOnWriteArrayList<ClientHandler> getMembers() {
+        return members;
+    }
+
 }

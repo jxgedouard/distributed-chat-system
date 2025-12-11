@@ -122,6 +122,17 @@ public class Server {
         }
     }
 
+    private static void sendUserListToClient(ClientHandler client, ChatRoom channel) {
+        StringBuilder userList = new StringBuilder("[USERLIST]");
+        boolean first = true;
+        for (ClientHandler member : channel.getMembers()) {
+            if (!first) userList.append(",");
+            userList.append(member.username);
+            first = false;
+        }
+        client.output.println(userList.toString());
+    }
+
     // Classe interne pour gérer chaque client
     public static class ClientHandler implements Runnable {
         private final Socket socket;
@@ -157,10 +168,14 @@ public class Server {
                 this.currentChannel = channels.get("#general");
                 currentChannel.addMember(this);
 
+                // Envoyer le nom du channel et la liste des users au client
+                output.println("[CHANNEL]#general");
+                sendUserListToClient(this, currentChannel);
+
                 SystemMessage connectionMsg = new SystemMessage("✅ " + username + " a rejoint le chat.");
                 System.out.println(connectionMsg.format());
                 broadcast(connectionMsg.format());
-                addToHistory(connectionMsg);  
+                addToHistory(connectionMsg);
 
                 // Boucle de messages
                 String messageText;
@@ -189,7 +204,11 @@ public class Server {
                                 // Rejoindre le nouveau
                                 currentChannel = targetChannel;
                                 currentChannel.addMember(this);
-                                output.println("✅ Vous avez rejoint " + channelName);                            }
+                                output.println("✅ Vous avez rejoint " + channelName);
+                                // Envoyer le nom du channel et la liste des users
+                                output.println("[CHANNEL]" + channelName);
+                                sendUserListToClient(this, currentChannel);
+                            }
                         }
                         else if (messageText.equals("/leave")) {
                             if (currentChannel != null) {
@@ -209,6 +228,22 @@ public class Server {
 
                         else if (messageText.equals("/channels")) {
                             output.println("📋 Channels disponibles : #general, #random, #java");
+                        }
+
+                        else if (messageText.equals("/users")) {
+                            if (currentChannel != null) {
+                                // Récupérer la liste des membres du channel actuel
+                                StringBuilder userList = new StringBuilder("[USERLIST]");
+                                boolean first = true;
+                                for (ClientHandler member : currentChannel.getMembers()) {
+                                    if (!first) userList.append(",");
+                                    userList.append(member.username);
+                                    first = false;
+                                }
+                                output.println(userList.toString());
+                            } else {
+                                output.println("[INFO] Vous n'êtes dans aucun channel");
+                            }
                         }
 
                         else {
