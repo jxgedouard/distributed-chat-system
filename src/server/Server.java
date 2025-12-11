@@ -2,6 +2,8 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
+import channels.ChatRoom;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -16,11 +18,16 @@ public class Server {
     private static volatile boolean running = true;
 
     private static final LinkedList<Message> messageHistory = new LinkedList<>();
+    private static final HashMap<String, ChatRoom> channels = new HashMap<>();
     private static final int MAX_HISTORY_SIZE = 20; 
 
     public static void main(String[] args) {
         int port = 3000;
         System.out.println("Serveur lancé sur le port " + port);
+
+        channels.put("#general", new ChatRoom("#general"));
+        channels.put("#random", new ChatRoom("#random"));
+        channels.put("#java", new ChatRoom("#java"));
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
 
@@ -116,11 +123,12 @@ public class Server {
     }
 
     // Classe interne pour gérer chaque client
-    static class ClientHandler implements Runnable {
+    public static class ClientHandler implements Runnable {
         private final Socket socket;
         private BufferedReader input;
         private PrintWriter output;
         private String username;
+        private ChatRoom currentChannel;
 
         public ClientHandler(Socket socket) {
             this.socket = socket;
@@ -132,6 +140,10 @@ public class Server {
             }
         }
 
+        public void sendMessage(String message) {
+            output.println(message);
+        }
+
         @Override
         public void run() {
             try {
@@ -140,6 +152,10 @@ public class Server {
 
                 // Envoyer l'historique des 20 derniers messages au nouveau client
                 sendHistoryTo(this);
+
+                // Acces channel
+                this.currentChannel = channels.get("#general");
+                currentChannel.addMember(this);
 
                 SystemMessage connectionMsg = new SystemMessage("✅ " + username + " a rejoint le chat.");
                 System.out.println(connectionMsg.format());
@@ -152,7 +168,51 @@ public class Server {
 
                     Message msg;
 
-                    if (messageText.startsWith("@")) {
+                    if (messageText.startsWith("/")) {
+                        if (messageText.startsWith("/join ")) {
+                            String[] parts = messageText.split(" ", 2);
+                            if (parts.length < 2) {
+                                output.println("[ERREUR] Format : /join #channel");
+                                continue;
+                            }
+                            String channelName = parts[1];
+                            ChatRoom targetChannel = channels.get(channelName);
+
+                            if (targetChannel == null) {
+                                output.println("[ERREUR] Channel '" + channelName + "' inexistant");
+                            }
+                            else {
+                                // Quitter l'ancier channel
+                                if (currentChannel != null) {
+                                    currentChannel.removeMember(this);
+                                }
+                                // Rejoindre le nouveau
+                                currentChannel = targetChannel;
+                                currentChannel.addMember(this);
+                                output.println("✅ Vous avez rejoint " + channelName);                            }
+                        }
+                        else if (messageText.equals("/leave")) {
+                            if (currentChannel != null) {
+                                String oldChannelName = currentChannel.getName();
+                                currentChannel.removeMember(this);
+                                currentChannel = null;
+                                output.println("✅ Vous avez quitté " + oldChannelName);
+                            } else {
+                                output.println("[INFO] Vous n'êtes dans aucun channel");
+                            }
+                        }
+
+                        else if (messageText.equals("/channels")) {
+                            output.println("📋 Channels disponibles : #general, #random, #java");
+                        }
+
+                        else {
+                            output.println("[ERREUR] Commande inconnue");
+                        }
+                        continue;
+                    }
+
+                    else if (messageText.startsWith("@")) {
                         // Message privé
                         String[] parts = messageText.split(" ", 2);
 
@@ -179,10 +239,14 @@ public class Server {
 
                     } else {
                         // Message public
-                        msg = new BroadcastMessage(username, messageText);
-                        System.out.println(msg.format());
-                        broadcast(msg.format());
-                        addToHistory(msg);  // Sauvegarder dans l'historique
+                        if (currentChannel != null) {
+                            msg = new BroadcastMessage(username, messageText);
+                            System.out.println("[" + currentChannel.getName() + "] " + msg.format());
+                            currentChannel.broadcast(msg.format());
+                            addToHistory(msg);  // Sauvegarder dans l'historique
+                        } else {
+                            output.println("[INFO] Vous devez rejoindre un channel avec /join #channel");
+                        }
                     }
                 }
 
