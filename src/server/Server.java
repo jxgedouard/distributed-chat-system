@@ -194,8 +194,13 @@ public class Server {
                         else if (messageText.equals("/leave")) {
                             if (currentChannel != null) {
                                 String oldChannelName = currentChannel.getName();
+                                // Notifier les autres membres du channel avant de partir
+                                SystemMessage leaveMsg = new SystemMessage("👋 " + username + " a quitté " + oldChannelName);
+                                currentChannel.broadcast(leaveMsg.format());
+                                // Retirer du channel
                                 currentChannel.removeMember(this);
                                 currentChannel = null;
+                                // Notifier l'utilisateur
                                 output.println("✅ Vous avez quitté " + oldChannelName);
                             } else {
                                 output.println("[INFO] Vous n'êtes dans aucun channel");
