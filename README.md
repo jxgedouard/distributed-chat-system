@@ -1,6 +1,6 @@
 # 📊 STATUT DU PROJET - JavaGroupChat
 
-**Dernière mise à jour :** 2025-11-28
+**Dernière mise à jour :** 2025-12-11
 
 ---
 
@@ -53,6 +53,16 @@
 - ✅ Méthode sendHistoryTo() pour nouveaux clients
 - ✅ Sauvegarde de tous types de messages (broadcast, privé, système)
 
+### V5.0 - Système de Channels (TERMINÉ ✅)
+- ✅ Classe ChatRoom pour gérer les salons
+- ✅ HashMap pour stocker les channels (#general, #random, #java)
+- ✅ Commande /join #channel pour rejoindre un salon
+- ✅ Commande /leave pour quitter un salon
+- ✅ Commande /channels pour lister les salons disponibles
+- ✅ Messages visibles uniquement dans le channel actuel
+- ✅ Notifications quand un utilisateur rejoint/quitte un channel
+- ✅ Attribution automatique au #general à la connexion
+
 ---
 
 ## 🚧 FONCTIONNALITÉS EN COURS
@@ -79,13 +89,13 @@ Aucune feature en cours actuellement
   - Structure: LinkedList (Queue)
   - **Concept:** Queue (objectif pédagogique)
 
-- [ ] 🏠 **Système de channels/salons** ← PROCHAINE ÉTAPE
+- [x] 🏠 **Système de channels/salons** ✅ **TERMINÉ**
   - Channels par défaut: #general, #random, #java
   - Commandes: `/join #channel`, `/leave`, `/channels`
   - HashMap pour gérer les channels
   - Messages visibles uniquement dans le channel actuel
+  - Notification quand un utilisateur rejoint/quitte un channel
   - **Concept:** HashMap (objectif pédagogique)
-  - Temps estimé: 1h
 
 - [ ] 📺 **Interface graphique JavaFX** ← DERNIÈRE ÉTAPE
   - Fenêtre de chat avec zone messages + zone saisie
@@ -147,10 +157,10 @@ Aucune feature en cours actuellement
 1. ✅ **Refactoring architecture** (héritage Message) - TERMINÉ
 2. ✅ **Timestamps** - TERMINÉ
 3. ✅ **Historique messages** - TERMINÉ
-4. ⏳ **Système de channels** (1h) - Feature impressionnante, utilise HashMap
+4. ✅ **Système de channels** - TERMINÉ
 5. ⏳ **Interface JavaFX** (2-3h) - En dernier pour tester toutes les features visuellement
 
-**Progrès : 3/5 features terminées**
+**Progrès : 4/5 features terminées (80%)**
 
 ---
 
@@ -162,39 +172,38 @@ Aucune feature en cours actuellement
 - ✅ Héritage (classe abstraite Message) ← **TERMINÉ !**
 - ✅ Polymorphisme (méthode format() dans Message) ← **TERMINÉ !**
 - ✅ Encapsulation (attributs privés + getters)
-- 🎯 Collections avancées - **EN COURS**
-  - ✅ Queue pour l'historique des messages (LinkedList) - TERMINÉ
-  - ⏳ HashMap pour les channels/salons - À FAIRE
+- ✅ Collections avancées - **TERMINÉ**
+  - ✅ Queue pour l'historique des messages (LinkedList)
+  - ✅ HashMap pour les channels/salons
 - ❌ Interface (Role) - Non retenu pour la présentation
 
 ### Branches Git:
-- `main` - Branche principale
-- `feature/private-messages` - Messages privés (ancienne version, à fusionner)
-- `feature/message-hierarchy` - **BRANCHE ACTUELLE** (architecture Message OOP)
+- `main` - Branche principale (à jour avec toutes les features terminées)
+- `feature/message-hierarchy` - Architecture Message + Channels (mergée dans main ✅)
 - `feature/interface` - UI en cours (brouillon)
+- `feature/private-messages` - OBSOLÈTE (à supprimer)
 
 ---
 
 ## 🔄 PROCHAINE SESSION
 
-**Session du 2025-11-28 - Statut : Timestamps + Historique TERMINÉS ✅**
+**Session du 2025-12-11 - Statut : Channels TERMINÉS ✅**
 
 **Ce qui a été fait cette session** :
-1. ✅ Timestamps format [HH:mm:ss] sur tous les messages
-2. ✅ Historique des 20 derniers messages (LinkedList/Queue)
-3. ✅ Envoi automatique de l'historique aux nouveaux clients
-4. ✅ README mis à jour
+1. ✅ Système de channels avec HashMap (#general, #random, #java)
+2. ✅ Commandes /join, /leave, /channels
+3. ✅ Notifications quand utilisateur rejoint/quitte un channel
+4. ✅ Merge dans main (architecture Git nettoyée)
+5. ✅ README mis à jour
 
 **Features restantes pour la présentation amphi** :
-1. ⏳ 🏠 Système de channels/salons avec HashMap (1h) - **PROCHAINE ÉTAPE**
-2. ⏳ 📺 Interface graphique JavaFX (2-3h avec Gemini) - FINALE
+1. ⏳ 📺 Interface graphique JavaFX (2-3h) - **DERNIÈRE ÉTAPE**
 
-**Progrès total : 3/5 features terminées (60%)**
+**Progrès total : 4/5 features terminées (80%)**
 
-**Rappel méthodologie :**
-- Mode pédagogique : guider avec questions, pas de solutions directes
-- Faire réfléchir avant de coder
-- Documenter au fur et à mesure
+**Prochaines étapes :**
+- Implémenter l'interface JavaFX pour finaliser le projet
+- Tester toutes les features visuellement
 
 ---
 
