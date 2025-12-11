@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -54,7 +55,7 @@ public class ChatClientUI extends Application {
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
-        stage.setTitle("JavaGroupChat - Discord Style");
+        stage.setTitle("JavaGroupChat");
 
         // Créer le controller qui gère la connexion réseau
         controller = new ClientController(this);
@@ -62,6 +63,16 @@ public class ChatClientUI extends Application {
         // Démarrage sur l'écran de connexion
         showLoginScreen();
         stage.show();
+    }
+
+    /**
+     * Mettre à jour le titre de la fenêtre avec le nom d'utilisateur
+     */
+    public void setUsername(String username) {
+        this.tempUsername = username;
+        Platform.runLater(() -> {
+            primaryStage.setTitle("JavaGroupChat - " + username);
+        });
     }
 
     /**
@@ -135,7 +146,7 @@ public class ChatClientUI extends Application {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button btnChannels = createStyledButton("Channels", "#4F545C");
-        btnChannels.setOnAction(e -> sendInternalCommand("/channels"));
+        btnChannels.setOnAction(e -> showChannelsDialog());
         
         Button btnQuit = createStyledButton("Quitter", "#ED4245");
         btnQuit.setOnAction(e -> {
@@ -238,6 +249,21 @@ public class ChatClientUI extends Application {
     }
 
     // --- LOGIQUE INTERNE ---
+
+    private void showChannelsDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Channels disponibles");
+        alert.setHeaderText("Liste des channels");
+        alert.setContentText("📋 Channels disponibles :\n\n• #general\n• #random\n• #java\n\nUtilisez /join #nom pour rejoindre un channel");
+
+        // Styling
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: " + COLOR_BG_DARK + ";");
+        dialogPane.lookup(".header-panel").setStyle("-fx-background-color: " + COLOR_SIDEBAR + "; -fx-text-fill: white;");
+        dialogPane.lookup(".content").setStyle("-fx-text-fill: white;");
+
+        alert.showAndWait();
+    }
 
     private void sendInternalCommand(String message) {
         if (onMessageSentHandler != null) {

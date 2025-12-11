@@ -37,6 +37,7 @@ public class ClientController {
         // Quand l'utilisateur clique sur "Se connecter"
         ui.setOnLoginRequest(pseudo -> {
             this.username = pseudo;
+            ui.setUsername(pseudo); // Afficher le username dans le titre
             connectToServer();
         });
 
@@ -60,6 +61,9 @@ public class ClientController {
 
             // Démarrer le thread d'écoute des messages du serveur
             startListeningToServer();
+
+            // Démarrer la mise à jour automatique de la liste des users
+            startAutoRefreshUserList();
 
             System.out.println("Connecté au serveur " + HOST + ":" + PORT);
 
@@ -110,11 +114,40 @@ public class ClientController {
     }
 
     /**
+     * Thread qui demande régulièrement la liste des users au serveur
+     */
+    private void startAutoRefreshUserList() {
+        Thread refreshThread = new Thread(() -> {
+            try {
+                while (!Thread.interrupted() && socket != null && !socket.isClosed()) {
+                    Thread.sleep(3000); // Toutes les 3 secondes
+                    if (output != null) {
+                        output.println("/users");
+                    }
+                }
+            } catch (InterruptedException e) {
+                // Thread interrompu, on arrête
+            }
+        });
+        refreshThread.setDaemon(true);
+        refreshThread.start();
+    }
+
+    /**
      * Envoyer un message au serveur
      */
     private void sendToServer(String message) {
         if (output != null) {
-            output.println(message);
+            // Gestion spéciale de "bye" pour déconnexion propre
+            if (message.equalsIgnoreCase("bye")) {
+                disconnect();
+                Platform.runLater(() -> {
+                    ui.appendMessage("[SYSTÈME] Déconnexion...");
+                });
+                Platform.exit();
+            } else {
+                output.println(message);
+            }
         }
     }
 
