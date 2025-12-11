@@ -41,6 +41,7 @@ public class ChatClientUI extends Application {
     private ListView<String> userList;
     private Label channelLabel;
     private Label connectionStatusLabel;
+    private java.util.Set<String> usersWithUnreadPM = new java.util.HashSet<>();
 
     // --- CALLBACKS ---
     private Consumer<String> onMessageSentHandler;
@@ -190,6 +191,9 @@ public class ChatClientUI extends Application {
         inputField.setPrefHeight(40);
         HBox.setHgrow(inputField, Priority.ALWAYS);
 
+        // Autocomplétion @ pour les MP
+        setupAutocomplete(inputField);
+
         Button sendBtn = createStyledButton("Envoyer", COLOR_ACCENT);
         sendBtn.setPrefHeight(40);
 
@@ -230,7 +234,12 @@ public class ChatClientUI extends Application {
                     setGraphic(null);
                     setStyle("-fx-background-color: transparent;");
                 } else {
-                    setText(item);
+                    // Ajouter un point rouge si l'utilisateur a envoyé un MP non lu
+                    String displayText = item;
+                    if (usersWithUnreadPM.contains(item)) {
+                        displayText = "🔴 " + item;
+                    }
+                    setText(displayText);
                     setTextFill(Color.web(COLOR_TEXT_WHITE));
                     setStyle("-fx-background-color: transparent; -fx-padding: 5px;");
                 }
@@ -249,6 +258,55 @@ public class ChatClientUI extends Application {
     }
 
     // --- LOGIQUE INTERNE ---
+
+    /**
+     * Configure l'autocomplétion pour les MP avec @
+     */
+    private void setupAutocomplete(TextField field) {
+        field.textProperty().addListener((observable, oldValue, newValue) -> {
+            // Si l'utilisateur tape "@" suivi d'une lettre
+            if (newValue.contains("@") && newValue.length() > oldValue.length()) {
+                int atIndex = newValue.lastIndexOf("@");
+                if (atIndex >= 0 && atIndex < newValue.length()) {
+                    String afterAt = newValue.substring(atIndex + 1);
+                    // Si pas d'espace après le @, on cherche une correspondance
+                    if (!afterAt.contains(" ") && afterAt.length() > 0) {
+                        // Chercher dans la liste des users
+                        if (userList != null && !userList.getItems().isEmpty()) {
+                            for (String user : userList.getItems()) {
+                                if (user.toLowerCase().startsWith(afterAt.toLowerCase())) {
+                                    // Proposer l'autocomplétion avec Tab
+                                    field.setStyle(getTextFieldStyle() + "-fx-prompt-text-fill: gray;");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Autocomplétion avec la touche Tab
+        field.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.TAB) {
+                e.consume();
+                String text = field.getText();
+                int atIndex = text.lastIndexOf("@");
+                if (atIndex >= 0) {
+                    String afterAt = text.substring(atIndex + 1);
+                    if (!afterAt.contains(" ") && userList != null) {
+                        for (String user : userList.getItems()) {
+                            if (user.toLowerCase().startsWith(afterAt.toLowerCase())) {
+                                field.setText(text.substring(0, atIndex + 1) + user + " ");
+                                field.positionCaret(field.getText().length());
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     private void showChannelsDialog() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -343,6 +401,19 @@ public class ChatClientUI extends Application {
                 contentText.setFill(Color.web("#FAA61A")); // Or/Jaune pour bien ressortir ou le bleu demandé #7289DA
                 contentText.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 13));
                 messageFlow.setStyle("-fx-background-color: rgba(114, 137, 218, 0.1); -fx-background-radius: 5px;");
+
+                // Détecter si c'est un MP reçu (pas envoyé)
+                if (rawMessage.contains("[MP de ")) {
+                    // Extraire le nom de l'expéditeur
+                    int startIdx = rawMessage.indexOf("[MP de ") + 7;
+                    int endIdx = rawMessage.indexOf("]", startIdx);
+                    if (startIdx > 0 && endIdx > startIdx) {
+                        String sender = rawMessage.substring(startIdx, endIdx);
+                        usersWithUnreadPM.add(sender);
+                        // Rafraîchir la liste pour afficher le point rouge
+                        userList.refresh();
+                    }
+                }
             } 
             else if (rawMessage.startsWith("Server:") || rawMessage.startsWith("System:") || rawMessage.startsWith("Bienvenue") || rawMessage.contains("a rejoint") || rawMessage.contains("a quitté")) {
                 // MESSAGE SYSTÈME

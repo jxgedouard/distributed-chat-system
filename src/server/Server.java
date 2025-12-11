@@ -204,6 +204,12 @@ public class Server {
                                 // Rejoindre le nouveau
                                 currentChannel = targetChannel;
                                 currentChannel.addMember(this);
+
+                                // Notifier les membres du nouveau channel
+                                SystemMessage joinMsg = new SystemMessage("✅ " + username + " a rejoint " + channelName);
+                                currentChannel.broadcast(joinMsg.format());
+                                addToHistory(joinMsg);
+
                                 output.println("✅ Vous avez rejoint " + channelName);
                                 // Envoyer le nom du channel et la liste des users
                                 output.println("[CHANNEL]" + channelName);
