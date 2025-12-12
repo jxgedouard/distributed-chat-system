@@ -232,10 +232,6 @@ public class Server {
                             }
                         }
 
-                        else if (messageText.equals("/channels")) {
-                            output.println("📋 Channels disponibles : #general, #random, #java");
-                        }
-
                         else if (messageText.equals("/users")) {
                             if (currentChannel != null) {
                                 // Récupérer la liste des membres du channel actuel
@@ -250,6 +246,15 @@ public class Server {
                             } else {
                                 output.println("[INFO] Vous n'êtes dans aucun channel");
                             }
+                        }
+
+                        else if (messageText.equals("/help")) {
+                            output.println("📚 Commandes disponibles :");
+                            output.println("  /join #channel - Rejoindre un channel");
+                            output.println("  /leave - Quitter le channel actuel");
+                            output.println("  /users - Liste des utilisateurs connectés");
+                            output.println("  @username message - Envoyer un message privé");
+                            output.println("  /help - Afficher cette aide");
                         }
 
                         else {

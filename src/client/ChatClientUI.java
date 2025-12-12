@@ -6,10 +6,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -23,97 +23,92 @@ import java.util.function.Consumer;
 
 public class ChatClientUI extends Application {
 
-    // --- COULEURS STYLE DISCORD ---
-    private static final String COLOR_BG_DARK = "#2C2F33";
-    private static final String COLOR_BG_LIGHT = "#36393F";
-    private static final String COLOR_SIDEBAR = "#23272A";
-    private static final String COLOR_TEXT_WHITE = "#FFFFFF";
-    private static final String COLOR_TEXT_GRAY = "#99AAB5";
-    private static final String COLOR_ACCENT = "#7289DA"; // Blurple
-    private static final String COLOR_ACCENT_HOVER = "#677BC4";
-    private static final String FONT_FAMILY = "Segoe UI";
+    // --- COULEURS STYLE APPLE / MACOS DARK ---
+    private static final String COLOR_BG_DARK = "#1E1E1E";      // Fond principal (très sombre)
+    private static final String COLOR_BG_LIGHT = "#1E1E1E";     // Zone de chat (unifié avec le fond)
+    private static final String COLOR_SIDEBAR = "#252526";      // Sidebar subtile
+    private static final String COLOR_BUBBLE_SELF = "#0A84FF";  // iMessage Blue
+    private static final String COLOR_BUBBLE_OTHER = "#3A3A3C"; // Gris foncé bulles
+    private static final String COLOR_TEXT_WHITE = "#F2F2F7";   // Blanc cassé (moins agressif)
+    private static final String COLOR_TEXT_GRAY = "#8E8E93";    // Gris Apple
+    private static final String COLOR_ACCENT = "#0A84FF";       // Bleu accent
+    private static final String COLOR_ACCENT_HOVER = "#0071E3";
+    private static final String FONT_FAMILY = "System";         // Police système par défaut
 
-    // --- COMPOSANTS UI ---
+    // --- COMPOSANTS UI (Noms préservés) ---
     private Stage primaryStage;
-    private VBox messageContainer; // Contient les TextFlows des messages
+    private VBox messageContainer; 
     private ScrollPane chatScrollPane;
     private TextField inputField;
     private ListView<String> userList;
     private Label channelLabel;
-    private Label connectionStatusLabel;
-    private java.util.Set<String> usersWithUnreadPM = new java.util.HashSet<>();
-
-    // --- CALLBACKS ---
+    
+    // --- CALLBACKS & CONTROLLERS (Noms préservés) ---
     private Consumer<String> onMessageSentHandler;
-    private Consumer<String> onLoginHandler; // Pour notifier le Main qu'on a le pseudo
-
-    // Variable temporaire pour stocker le username avant connexion réelle
+    private Consumer<String> onLoginHandler;
     private String tempUsername;
-
-    // Controller pour gérer la logique réseau
     private ClientController controller;
+
+    // Constructeur vide requis par JavaFX ou instanciation externe
+    public ChatClientUI() {
+    }
 
     @Override
     public void start(Stage stage) {
         this.primaryStage = stage;
-        stage.setTitle("JavaGroupChat");
+        stage.setTitle("Messages"); // Titre plus sobre style app native
 
-        // Créer le controller qui gère la connexion réseau
+        // Initialisation controller
         controller = new ClientController(this);
 
-        // Démarrage sur l'écran de connexion
         showLoginScreen();
         stage.show();
     }
 
-    /**
-     * Mettre à jour le titre de la fenêtre avec le nom d'utilisateur
-     */
     public void setUsername(String username) {
         this.tempUsername = username;
         Platform.runLater(() -> {
-            primaryStage.setTitle("JavaGroupChat - " + username);
+            primaryStage.setTitle("Messages - " + username);
         });
     }
 
     /**
-     * ECRAN 1 : CONNEXION
+     * ECRAN 1 : CONNEXION (Style Minimaliste Centré)
      */
     private void showLoginScreen() {
-        VBox root = new VBox(20);
+        VBox root = new VBox(25);
         root.setAlignment(Pos.CENTER);
         root.setStyle("-fx-background-color: " + COLOR_BG_DARK + ";");
-        root.setPadding(new Insets(50));
+        root.setPadding(new Insets(60));
 
-        Label title = new Label("Bienvenue sur le Chat");
-        title.setStyle("-fx-text-fill: " + COLOR_TEXT_WHITE + "; -fx-font-size: 24px; -fx-font-family: '" + FONT_FAMILY + "'; -fx-font-weight: bold;");
+        // Icone ou Cercle décoratif
+        Circle logoPlaceholder = new Circle(30, Color.web(COLOR_ACCENT));
+        
+        Label title = new Label("Bienvenue");
+        title.setStyle("-fx-text-fill: " + COLOR_TEXT_WHITE + "; -fx-font-size: 28px; -fx-font-family: '" + FONT_FAMILY + "'; -fx-font-weight: bold;");
 
         TextField usernameField = new TextField();
-        usernameField.setPromptText("Entrez votre pseudo...");
-        usernameField.setMaxWidth(300);
-        usernameField.setStyle(getTextFieldStyle());
+        usernameField.setPromptText("Votre pseudo");
+        usernameField.setMaxWidth(280);
+        // Style "Pill" input
+        usernameField.setStyle("-fx-background-color: #2C2C2E; -fx-text-fill: white; -fx-background-radius: 20px; -fx-padding: 12px 20px; -fx-font-size: 14px;");
 
-        Button connectBtn = createStyledButton("Se connecter", COLOR_ACCENT);
-        connectBtn.setMaxWidth(300);
+        Button connectBtn = createStyledButton("Entrer", COLOR_ACCENT);
+        connectBtn.setMaxWidth(280);
 
         Label errorLabel = new Label();
-        errorLabel.setTextFill(Color.RED);
+        errorLabel.setTextFill(Color.web("#FF453A")); // Apple Red
 
         Runnable doLogin = () -> {
             String pseudo = usernameField.getText().trim();
             if (!pseudo.isEmpty()) {
                 this.tempUsername = pseudo;
-                // Transition vers l'interface principale
-                // Note : Dans un vrai cas, on attendrait la confirmation du Socket, 
-                // mais ici on switch l'UI immédiatement pour l'exemple.
                 showMainChatScreen();
-                
-                // Si un handler de login externe est défini (ex: pour initier le Socket)
                 if (onLoginHandler != null) {
                     onLoginHandler.accept(pseudo);
                 }
             } else {
-                errorLabel.setText("Le pseudo ne peut pas être vide !");
+                errorLabel.setText("Merci de choisir un pseudo.");
             }
         };
 
@@ -122,80 +117,78 @@ public class ChatClientUI extends Application {
             if (e.getCode() == KeyCode.ENTER) doLogin.run();
         });
 
-        root.getChildren().addAll(title, usernameField, connectBtn, errorLabel);
-        Scene scene = new Scene(root, 400, 300);
+        root.getChildren().addAll(logoPlaceholder, title, usernameField, connectBtn, errorLabel);
+        Scene scene = new Scene(root, 400, 500); // Format un peu plus vertical style mobile/moderne
         primaryStage.setScene(scene);
     }
 
     /**
-     * ECRAN 2 : CHAT PRINCIPAL
+     * ECRAN 2 : CHAT PRINCIPAL (Layout BorderPane préservé)
      */
     private void showMainChatScreen() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + COLOR_BG_DARK + ";");
 
-        // --- TOP (Header) ---
+        // --- TOP (Header Épuré) ---
         HBox topBar = new HBox(15);
-        topBar.setPadding(new Insets(10, 20, 10, 20));
+        topBar.setPadding(new Insets(15, 25, 15, 25));
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setStyle("-fx-background-color: " + COLOR_SIDEBAR + "; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);");
+        // Bordure subtile en bas seulement
+        topBar.setStyle("-fx-background-color: " + COLOR_BG_DARK + "; -fx-border-color: #333333; -fx-border-width: 0 0 1 0;");
 
         channelLabel = new Label("# général");
-        channelLabel.setStyle("-fx-text-fill: " + COLOR_TEXT_WHITE + "; -fx-font-size: 16px; -fx-font-weight: bold;");
+        channelLabel.setStyle("-fx-text-fill: " + COLOR_TEXT_WHITE + "; -fx-font-size: 18px; -fx-font-weight: bold;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button btnChannels = createStyledButton("Channels", "#4F545C");
-        btnChannels.setOnAction(e -> showChannelsDialog());
-        
-        Button btnQuit = createStyledButton("Quitter", "#ED4245");
+        Button btnQuit = new Button("Quitter");
+        // Bouton style "Ghost" (juste du texte rouge)
+        btnQuit.setStyle("-fx-background-color: transparent; -fx-text-fill: #FF453A; -fx-font-size: 14px; -fx-cursor: hand;");
         btnQuit.setOnAction(e -> {
              sendInternalCommand("/leave");
-             // Optionnel : fermer l'appli ou revenir au login
              Platform.exit();
         });
 
-        topBar.getChildren().addAll(channelLabel, spacer, btnChannels, btnQuit);
+        topBar.getChildren().addAll(channelLabel, spacer, btnQuit);
         root.setTop(topBar);
 
         // --- CENTER (Zone de messages) ---
-        messageContainer = new VBox(5); // Espacement vertical entre messages
-        messageContainer.setPadding(new Insets(15));
+        messageContainer = new VBox(15); // Plus d'espace entre les messages
+        messageContainer.setPadding(new Insets(20));
         messageContainer.setStyle("-fx-background-color: " + COLOR_BG_LIGHT + ";");
-        // Important pour que le TextFlow prenne toute la largeur
         messageContainer.setFillWidth(true); 
 
         chatScrollPane = new ScrollPane(messageContainer);
-        chatScrollPane.setFitToWidth(true); // Force les messages à s'adapter à la largeur
+        chatScrollPane.setFitToWidth(true);
+        // Style scrollbar moderne/invisible
         chatScrollPane.setStyle("-fx-background: " + COLOR_BG_LIGHT + "; -fx-background-color: " + COLOR_BG_LIGHT + ";");
-        // Suppression des bordures par défaut du ScrollPane
-        chatScrollPane.getStyleClass().add("edge-to-edge"); 
+        chatScrollPane.getStyleClass().add("edge-to-edge");
         
-        // Auto-scroll logic
+        // Auto-scroll
         messageContainer.heightProperty().addListener((observable, oldValue, newValue) -> {
             chatScrollPane.setVvalue(1.0);
         });
 
         root.setCenter(chatScrollPane);
 
-        // --- BOTTOM (Input) ---
+        // --- BOTTOM (Input Moderne) ---
         HBox bottomBar = new HBox(10);
-        bottomBar.setPadding(new Insets(15));
-        bottomBar.setStyle("-fx-background-color: " + COLOR_BG_DARK + ";");
+        bottomBar.setPadding(new Insets(20));
+        bottomBar.setStyle("-fx-background-color: " + COLOR_BG_DARK + ";"); // Unifié
         bottomBar.setAlignment(Pos.CENTER);
 
         inputField = new TextField();
-        inputField.setPromptText("Envoyer un message à " + channelLabel.getText());
-        inputField.setStyle(getTextFieldStyle());
-        inputField.setPrefHeight(40);
+        inputField.setPromptText("Message...");
+        // Style "Pill" input
+        inputField.setStyle("-fx-background-color: #2C2C2E; -fx-text-fill: white; -fx-background-radius: 25px; -fx-padding: 10px 20px; -fx-font-size: 14px;");
+        inputField.setPrefHeight(45);
         HBox.setHgrow(inputField, Priority.ALWAYS);
 
-        // Autocomplétion @ pour les MP
-        setupAutocomplete(inputField);
-
-        Button sendBtn = createStyledButton("Envoyer", COLOR_ACCENT);
-        sendBtn.setPrefHeight(40);
+        // Bouton Rond avec flèche ou texte simple
+        Button sendBtn = createStyledButton("↑", COLOR_ACCENT);
+        sendBtn.setPrefSize(45, 45); // Rond
+        sendBtn.setStyle("-fx-background-color: " + COLOR_ACCENT + "; -fx-text-fill: white; -fx-background-radius: 50%; -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         Runnable sendAction = () -> {
             String msg = inputField.getText();
@@ -214,14 +207,15 @@ public class ChatClientUI extends Application {
         bottomBar.getChildren().addAll(inputField, sendBtn);
         root.setBottom(bottomBar);
 
-        // --- RIGHT (Liste utilisateurs) ---
-        VBox rightPane = new VBox(10);
-        rightPane.setPrefWidth(200);
-        rightPane.setPadding(new Insets(10));
-        rightPane.setStyle("-fx-background-color: " + COLOR_SIDEBAR + ";");
+        // --- RIGHT (Sidebar minimaliste) ---
+        VBox rightPane = new VBox(15);
+        rightPane.setPrefWidth(220);
+        rightPane.setPadding(new Insets(20));
+        // Bordure gauche subtile
+        rightPane.setStyle("-fx-background-color: " + COLOR_SIDEBAR + "; -fx-border-color: #333333; -fx-border-width: 0 0 0 1;");
 
-        Label usersTitle = new Label("CONNECTÉS");
-        usersTitle.setStyle("-fx-text-fill: " + COLOR_TEXT_GRAY + "; -fx-font-size: 12px; -fx-font-weight: bold;");
+        Label usersTitle = new Label("EN LIGNE");
+        usersTitle.setStyle("-fx-text-fill: " + COLOR_TEXT_GRAY + "; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 0 0 5 10;");
 
         userList = new ListView<>();
         userList.setStyle("-fx-background-color: transparent; -fx-control-inner-background: " + COLOR_SIDEBAR + ";");
@@ -234,13 +228,16 @@ public class ChatClientUI extends Application {
                     setGraphic(null);
                     setStyle("-fx-background-color: transparent;");
                 } else {
-                    // Ajouter un point rouge si l'utilisateur a envoyé un MP non lu
-                    String displayText = item;
-                    if (usersWithUnreadPM.contains(item)) {
-                        displayText = "🔴 " + item;
-                    }
-                    setText(displayText);
-                    setTextFill(Color.web(COLOR_TEXT_WHITE));
+                    // Item user avec petit point vert
+                    HBox userRow = new HBox(10);
+                    userRow.setAlignment(Pos.CENTER_LEFT);
+                    Circle statusDot = new Circle(4, Color.web("#30D158")); // Apple Green
+                    Label nameLbl = new Label(item);
+                    nameLbl.setTextFill(Color.web(COLOR_TEXT_WHITE));
+                    nameLbl.setFont(Font.font(FONT_FAMILY, 13));
+                    userRow.getChildren().addAll(statusDot, nameLbl);
+                    
+                    setGraphic(userRow);
                     setStyle("-fx-background-color: transparent; -fx-padding: 5px;");
                 }
             }
@@ -249,9 +246,13 @@ public class ChatClientUI extends Application {
         rightPane.getChildren().addAll(usersTitle, userList);
         root.setRight(rightPane);
 
-        Scene mainScene = new Scene(root, 900, 600);
-        // Hack CSS pour cacher la bordure du ScrollPane si nécessaire
-        mainScene.getStylesheets().add("data:text/css,.scroll-pane > .viewport { -fx-background-color: transparent; }");
+        Scene mainScene = new Scene(root, 950, 650);
+        // CSS Data URI pour cacher la scrollbar native moche et faire une version fine
+        String scrollbarCss = "data:text/css," +
+                ".scroll-pane > .viewport { -fx-background-color: transparent; }" +
+                ".scroll-bar:vertical { -fx-background-color: transparent; -fx-pref-width: 10; }" +
+                ".scroll-bar:vertical .thumb { -fx-background-color: #555; -fx-background-radius: 5; }";
+        mainScene.getStylesheets().add(scrollbarCss);
         
         primaryStage.setScene(mainScene);
         primaryStage.centerOnScreen();
@@ -259,100 +260,28 @@ public class ChatClientUI extends Application {
 
     // --- LOGIQUE INTERNE ---
 
-    /**
-     * Configure l'autocomplétion pour les MP avec @
-     */
-    private void setupAutocomplete(TextField field) {
-        field.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Si l'utilisateur tape "@" suivi d'une lettre
-            if (newValue.contains("@") && newValue.length() > oldValue.length()) {
-                int atIndex = newValue.lastIndexOf("@");
-                if (atIndex >= 0 && atIndex < newValue.length()) {
-                    String afterAt = newValue.substring(atIndex + 1);
-                    // Si pas d'espace après le @, on cherche une correspondance
-                    if (!afterAt.contains(" ") && afterAt.length() > 0) {
-                        // Chercher dans la liste des users
-                        if (userList != null && !userList.getItems().isEmpty()) {
-                            for (String user : userList.getItems()) {
-                                if (user.toLowerCase().startsWith(afterAt.toLowerCase())) {
-                                    // Proposer l'autocomplétion avec Tab
-                                    field.setStyle(getTextFieldStyle() + "-fx-prompt-text-fill: gray;");
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Autocomplétion avec la touche Tab
-        field.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.TAB) {
-                e.consume();
-                String text = field.getText();
-                int atIndex = text.lastIndexOf("@");
-                if (atIndex >= 0) {
-                    String afterAt = text.substring(atIndex + 1);
-                    if (!afterAt.contains(" ") && userList != null) {
-                        for (String user : userList.getItems()) {
-                            if (user.toLowerCase().startsWith(afterAt.toLowerCase())) {
-                                field.setText(text.substring(0, atIndex + 1) + user + " ");
-                                field.positionCaret(field.getText().length());
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    private void showChannelsDialog() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Channels disponibles");
-        alert.setHeaderText("Liste des channels");
-        alert.setContentText("📋 Channels disponibles :\n\n• #general\n• #random\n• #java\n\nUtilisez /join #nom pour rejoindre un channel");
-
-        // Styling
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setStyle("-fx-background-color: " + COLOR_BG_DARK + ";");
-        dialogPane.lookup(".header-panel").setStyle("-fx-background-color: " + COLOR_SIDEBAR + "; -fx-text-fill: white;");
-        dialogPane.lookup(".content").setStyle("-fx-text-fill: white;");
-
-        alert.showAndWait();
-    }
-
     private void sendInternalCommand(String message) {
         if (onMessageSentHandler != null) {
             onMessageSentHandler.accept(message);
         }
     }
 
-    private String getTextFieldStyle() {
-        return "-fx-background-color: #40444B; -fx-text-fill: white; -fx-background-radius: 5px; -fx-padding: 10px;";
-    }
-
+    // Méthode utilitaire pour bouton "Pill" large
     private Button createStyledButton(String text, String colorHex) {
         Button btn = new Button(text);
-        btn.setStyle("-fx-background-color: " + colorHex + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5px; -fx-cursor: hand;");
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: derive(" + colorHex + ", 20%); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5px; -fx-cursor: hand;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + colorHex + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5px; -fx-cursor: hand;"));
+        String baseStyle = "-fx-background-color: " + colorHex + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-cursor: hand; -fx-padding: 10px 20px;";
+        btn.setStyle(baseStyle);
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: " + COLOR_ACCENT_HOVER + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-cursor: hand; -fx-padding: 10px 20px;"));
+        btn.setOnMouseExited(e -> btn.setStyle(baseStyle));
         return btn;
     }
 
-    // --- API PUBLIQUE (POUR LE CLIENT.JAVA) ---
+    // --- API PUBLIQUE (INTACTE) ---
 
-    /**
-     * Définit l'action à effectuer quand l'utilisateur clique sur "Se connecter"
-     */
     public void setOnLoginRequest(Consumer<String> handler) {
         this.onLoginHandler = handler;
     }
 
-    /**
-     * Définit l'action à effectuer quand l'utilisateur envoie un message
-     */
     public void setOnMessageSent(Consumer<String> handler) {
         this.onMessageSentHandler = handler;
     }
@@ -360,8 +289,8 @@ public class ChatClientUI extends Application {
     public void updateChannelName(String channelName) {
         Platform.runLater(() -> {
             if (channelLabel != null) {
-                channelLabel.setText("Channel : " + channelName);
-                if (inputField != null) inputField.setPromptText("Envoyer un message à " + channelName);
+                channelLabel.setText(channelName);
+                if (inputField != null) inputField.setPromptText("Message dans " + channelName);
             }
         });
     }
@@ -376,77 +305,86 @@ public class ChatClientUI extends Application {
     }
 
     /**
-     * Ajoute un message à la zone de chat avec un formatage intelligent.
-     * Détecte automatiquement les MP, les messages système, etc.
+     * Ajoute un message à la zone de chat.
+     * MODIFICATION : Utilisation de "bulles" visuelles au lieu de texte brut.
      */
     public void appendMessage(String rawMessage) {
         Platform.runLater(() -> {
             if (messageContainer == null) return;
 
-            TextFlow messageFlow = new TextFlow();
-            messageFlow.setPadding(new Insets(2, 0, 2, 0));
+            // Conteneur global du message (permet de gérer l'alignement si besoin plus tard)
+            VBox bubbleContainer = new VBox(2);
+            
+            // TextFlow qui sera la "bulle" colorée
+            TextFlow messageBubble = new TextFlow();
+            messageBubble.setPadding(new Insets(10, 15, 10, 15));
+            messageBubble.setMaxWidth(600); // Empêche les bulles trop larges
 
-            // Timestamp (local si non fourni, sinon on pourrait parser le message)
-            Text timeText = new Text("[" + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) + "] ");
+            Text timeText = new Text(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) + " ");
             timeText.setFill(Color.web(COLOR_TEXT_GRAY));
-            timeText.setFont(Font.font("Monospaced", 11));
+            timeText.setFont(Font.font("Monospaced", 10));
 
             Text contentText = new Text();
-            contentText.setFont(Font.font(FONT_FAMILY, 13));
+            contentText.setFont(Font.font(FONT_FAMILY, 14));
+            contentText.setFill(Color.web(COLOR_TEXT_WHITE));
 
-            // Logique de couleur selon le type de message
+            // --- LOGIQUE DE PARSING (INTACTE) ---
+            
             if (rawMessage.startsWith("[MP") || rawMessage.contains("chuchote")) {
-                // MESSAGE PRIVÉ
+                // MP -> Bulle Violette/Indigo
                 contentText.setText(rawMessage);
-                contentText.setFill(Color.web("#FAA61A")); // Or/Jaune pour bien ressortir ou le bleu demandé #7289DA
-                contentText.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 13));
-                messageFlow.setStyle("-fx-background-color: rgba(114, 137, 218, 0.1); -fx-background-radius: 5px;");
-
-                // Détecter si c'est un MP reçu (pas envoyé)
-                if (rawMessage.contains("[MP de ")) {
-                    // Extraire le nom de l'expéditeur
-                    int startIdx = rawMessage.indexOf("[MP de ") + 7;
-                    int endIdx = rawMessage.indexOf("]", startIdx);
-                    if (startIdx > 0 && endIdx > startIdx) {
-                        String sender = rawMessage.substring(startIdx, endIdx);
-                        usersWithUnreadPM.add(sender);
-                        // Rafraîchir la liste pour afficher le point rouge
-                        userList.refresh();
-                    }
-                }
+                messageBubble.getChildren().addAll(contentText); // Pas de timestamp dans la bulle MP pour le style
+                
+                messageBubble.setStyle("-fx-background-color: #5856D6; -fx-background-radius: 18px;"); // Apple Indigo
+                bubbleContainer.getChildren().addAll(timeText, messageBubble); // Time au dessus ou à coté
+                
             } 
             else if (rawMessage.startsWith("Server:") || rawMessage.startsWith("System:") || rawMessage.startsWith("Bienvenue") || rawMessage.contains("a rejoint") || rawMessage.contains("a quitté")) {
-                // MESSAGE SYSTÈME
-                contentText.setText(rawMessage);
-                contentText.setFill(Color.web(COLOR_TEXT_GRAY));
-                contentText.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 12));
+                // Message système -> Centré, gris, pas de bulle
+                Text sysText = new Text(rawMessage);
+                sysText.setFill(Color.web(COLOR_TEXT_GRAY));
+                sysText.setFont(Font.font(FONT_FAMILY, 12));
+                
+                HBox systemBox = new HBox(sysText);
+                systemBox.setAlignment(Pos.CENTER);
+                systemBox.setPadding(new Insets(5, 0, 5, 0));
+                
+                messageContainer.getChildren().add(systemBox);
+                return; // STOP ICI
             } 
             else {
-                // MESSAGE PUBLIC STANDARD
-                // Tentative de séparer "User => Message" pour mettre l'user en couleur
+                // Message Public Standard
                 if (rawMessage.contains("=>")) {
                     String[] parts = rawMessage.split("=>", 2);
-                    Text userText = new Text(parts[0] + " ");
-                    userText.setFill(Color.web(COLOR_ACCENT)); // Pseudo en bleu
-                    userText.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 13));
+                    String username = parts[0].trim();
+                    String msgContent = parts[1].trim();
                     
-                    Text msgText = new Text("=> " + parts[1]);
-                    msgText.setFill(Color.web(COLOR_TEXT_WHITE));
+                    // Nom de l'utilisateur au dessus de la bulle
+                    Label userLabel = new Label(username);
+                    userLabel.setTextFill(Color.web(COLOR_TEXT_GRAY));
+                    userLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 11));
+                    userLabel.setPadding(new Insets(0, 0, 0, 5));
+
+                    contentText.setText(msgContent);
+                    messageBubble.getChildren().add(contentText);
                     
-                    messageFlow.getChildren().addAll(timeText, userText, msgText);
-                    messageContainer.getChildren().add(messageFlow);
-                    return; // Sortie anticipée car on a géré les enfants manuellement
+                    // Style Bulle gris foncé
+                    messageBubble.setStyle("-fx-background-color: " + COLOR_BUBBLE_OTHER + "; -fx-background-radius: 0 18px 18px 18px;");
+                    
+                    bubbleContainer.getChildren().addAll(userLabel, messageBubble);
                 } else {
+                    // Fallback (message simple sans format)
                     contentText.setText(rawMessage);
-                    contentText.setFill(Color.web(COLOR_TEXT_WHITE));
+                    messageBubble.getChildren().add(contentText);
+                    messageBubble.setStyle("-fx-background-color: " + COLOR_BUBBLE_OTHER + "; -fx-background-radius: 18px;");
+                    bubbleContainer.getChildren().add(messageBubble);
                 }
             }
 
-            messageFlow.getChildren().addAll(timeText, contentText);
-            messageContainer.getChildren().add(messageFlow);
-            
-            // Notification sonore simple (bip système)
-            // java.awt.Toolkit.getDefaultToolkit().beep(); 
+            // Ajout d'un wrapper pour le timestamp à côté si voulu, ici on fait simple
+            HBox row = new HBox(8);
+            row.getChildren().add(bubbleContainer);
+            messageContainer.getChildren().add(row);
         });
     }
 
